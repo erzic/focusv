@@ -42,10 +42,13 @@ def check_proyecto_nuevo(link):
         breadcrumb = soup.find(name="div", attrs={"class":"d3-container adaptor-breadcrumb-detailpager"}).text
         
     except AttributeError:
-        breadcrumb=""
+        breadcrumb = ""
         
 
     if breadcrumb.find("Proyectos nuevos")!=-1:
+        saltarse_link=True
+        return True, soup, r, saltarse_link
+    elif breadcrumb=="":
         saltarse_link=True
         return True, soup, r, saltarse_link
     else:
