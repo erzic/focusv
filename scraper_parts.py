@@ -40,13 +40,16 @@ def check_proyecto_nuevo(link):
     soup = BeautifulSoup(r.text, "html.parser")
     try:
         breadcrumb = soup.find(name="div", attrs={"class":"d3-container adaptor-breadcrumb-detailpager"}).text
-        saltarse_link = False
+        
     except AttributeError:
-        saltarse_link = True
+        breadcrumb=""
+        
 
     if breadcrumb.find("Proyectos nuevos")!=-1:
+        saltarse_link=True
         return True, soup, r, saltarse_link
     else:
+        saltarse_link=False
         return False, soup, r, saltarse_link
 
 def scrape_proyecto_normal(soup, r):
