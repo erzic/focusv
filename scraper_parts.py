@@ -23,7 +23,9 @@ def get_links():
 
         r = requests.get(link_temp, params=payload)
         soup = BeautifulSoup(r.text, 'html.parser')
-        links_temp = ["".join([link_inicial, link.attrs["href"].split("?")[0]]) for link in soup.find_all(name="div", attrs={"class":"ann-ad-tile__cover"})]
+        links_temp = [l for l in soup.find_all(name="a", attrs={"class":"ann-ad-tile__title"}) if l.text!=None or l.text.strip()!=""]
+        links_temp = ["".join([link_inicial, link.attrs["href"].split("?")[0]]) for link in links_temp]
+        link_temp = []
         if len(links_temp)==0:
             break
         links.extend(links_temp)
@@ -38,22 +40,38 @@ def check_proyecto_nuevo(link):
 
     r = requests.get(link)
     soup = BeautifulSoup(r.text, "html.parser")
-    try:
-        breadcrumb = soup.find(name="div", attrs={"class":"d3-container adaptor-breadcrumb-detailpager"}).text
-        
-    except AttributeError:
-        breadcrumb = ""
-        
 
-    if breadcrumb.find("Proyectos nuevos")!=-1:
-        saltarse_link=True
-        return True, soup, r, saltarse_link
-    elif breadcrumb=="":
-        saltarse_link=True
-        return True, soup, r, saltarse_link
+    # try:
+    #     breadcrumb = soup.find(name="div", attrs={"class":"d3-container adaptor-breadcrumb-detailpager"}).text
+    #     breadcrumb_encontrado = True
+        
+    # except AttributeError:
+    #     breadcrumb = ""
+    #     breadcrumb_encontrado = False
+        
+    if link.lower().find("bienes-raices-proyectos-nuevos")!=-1:
+        saltarse_link=True #esto se borra cuando tengamos el scraper de proyectos nuevos
+        is_proyecto_nuevo=True
     else:
         saltarse_link=False
-        return False, soup, r, saltarse_link
+        is_proyecto_nuevo=False
+    
+    return is_proyecto_nuevo, soup, r, saltarse_link
+
+    # if breadcrumb.find("Proyectos nuevos")!=-1:
+    #     saltarse_link=True
+    #     is_proyecto_nuevo=True
+    #     return is_proyecto_nuevo, soup, r, saltarse_link
+    
+    # elif breadcrumb=="":
+    #     saltarse_link=True
+    #     is_proyecto_nuevo=True
+    #     return is_proyecto_nuevo, soup, r, saltarse_link
+    
+    # else:
+    #     saltarse_link=False
+    #     is_proyecto_nuevo=False
+    #     return is_proyecto_nuevo, soup, r, saltarse_link
 
 def scrape_proyecto_normal(soup, r):
     import pandas as pd
