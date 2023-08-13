@@ -4,8 +4,6 @@ import pandas as pd
 from progress.bar import Bar
 from scraper_parts import get_links, check_proyecto_nuevo, scrape_proyecto_normal, scrape_proyecto_nuevo
 
-pd.DataFrame({"A":[1,2]}).to_excel("prueba.xlsx", index=False)
-
 links=get_links()
 df_master = pd.DataFrame()
 links_shortened = links[:5].copy()
