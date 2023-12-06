@@ -1,28 +1,29 @@
-def get_links():
+def get_links(limit = None):
     import requests
     from bs4 import BeautifulSoup
 
-    link_inicial="https://www.encuentra24.com"
-    link_venta_casas = "https://www.encuentra24.com/el-salvador-es/bienes-raices-venta-de-propiedades-casas"
-    payload = {
-        "q":"number.50", # para tener 50 resultados por cada pagina, disminuye el bucle
-    }
-    r = requests.get(link_venta_casas, params=payload)
+    #
+    #link_venta_casas = "https://www.encuentra24.com/el-salvador-es/bienes-raices-venta-de-propiedades-casas"
+    # payload = {
+    #     "q":"number.50", # para tener 50 resultados por cada pagina, disminuye el bucle
+    # }
+    # r = requests.get(link_venta_casas, params=payload)
 
-    soup = BeautifulSoup(r.text, 'html.parser')
+    # soup = BeautifulSoup(r.text, 'html.parser')
 
-    links = ["".join([link_inicial, link.attrs["href"].split("?")[0]]) for link in soup.find_all(name="div", attrs={"class":"ann-ad-tile__cover"})]
-
+    # links = ["".join([link_inicial, link.attrs["href"].split("?")[0]]) for link in soup.find_all(name="div", attrs={"class":"ann-ad-tile__cover"})]
+    
     links = []
     contador = 1
-    while True:
+    payload = {"q":"number.50"} # para tener 50 resultados por cada pagina, disminuye el bucle
+    link_inicial="https://www.encuentra24.com"
+
+    while True: # obtiene todos los links de cada pagina
         link_temp = f"https://www.encuentra24.com/el-salvador-es/bienes-raices-venta-de-propiedades-casas.{contador}"
-        payload = {
-            "q":"number.50", # para tener 50 resultados por cada pagina, disminuye el bucle
-        }
 
         r = requests.get(link_temp, params=payload)
         soup = BeautifulSoup(r.text, 'html.parser')
+
         links_temp = [l for l in soup.find_all(name="a", attrs={"class":"ann-ad-tile__title"}) if l.text!=None or l.text.strip()!=""]
         links_temp = ["".join([link_inicial, link.attrs["href"].split("?")[0]]) for link in links_temp]
         link_temp = []
@@ -30,8 +31,38 @@ def get_links():
             break
         links.extend(links_temp)
 
+        if contador==limit:
+            break
+
         contador+=1
+    
     return links
+
+def generate_links_log(links, filename="links_log.parquet"):
+
+    import pandas as pd
+    import datetime
+
+    timestamp = datetime.datetime.today()
+    year = timestamp.year
+    month = timestamp.month
+    day = timestamp.day
+
+    try:
+        df=pd.read_parquet(f"data/{filename}")
+        df_tmp=pd.DataFrame()
+        df_tmp["links"] = links
+        df_tmp["fecha"] = pd.to_datetime([f"{year}/{month}/{day}"]*len(links), format="%Y/%m/%d")
+
+        df = pd.concat([df, df_tmp], axis=1)
+        df.to_parquet(f"data/{filename}")
+    except:
+        df = pd.DataFrame()
+        df["links"] = links
+        df["fecha"] = pd.to_datetime([f"{year}/{month}/{day}"]*len(links), format="%Y/%m/%d")
+        df.to_parquet(f"data/{filename}")
+    
+    return None
 
 def check_proyecto_nuevo(link):
 
